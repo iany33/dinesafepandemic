@@ -1,5 +1,6 @@
 
 pacman::p_load(rio,
+               here,
                Matrix,
                tidyverse,
                tsibble,
@@ -8,8 +9,8 @@ pacman::p_load(rio,
 
 # Load datasets
 
-dinesafe1 <- import("G:/My Drive/Research/Projects-TMU/Dinesafe data/Datasets/Dinesafe_2017_2021.xlsx")
-dinesafe2 <- import("G:/My Drive/Research/Projects-TMU/Dinesafe data/Datasets/Dinesafe_2020_2022.xlsx")
+dinesafe1 <- import(here("data", "Dinesafe_2017_2021.xlsx"))
+dinesafe2 <- import(here("data", "Dinesafe_2021_2022.xlsx"))
 
 # Remove overlapping time periods
 
@@ -26,7 +27,7 @@ dinesafe <- dinesafe |> janitor::clean_names()
 
 # Explores types of premises
 
-dinesafe |> tabyl(type) |> adorn_totals
+dinesafe |> tabyl(type) |> adorn_totals("row")
 
 dinesafe |> select(type) |> gtsummary::tbl_summary() 
 
@@ -75,7 +76,7 @@ data <- data |> group_by(id, yearmonth) |>
   arrange(id, yearmonth) |> slice(1) |> ungroup()
 
 
-# Reduce to time series data - default week starts on Monday
+# Reformat as time series data - default week starts on Monday
 
 timeseries <- data |> group_by(date) |>
   summarize(infractions = sum(num_infractions),
@@ -188,11 +189,13 @@ p2 <- ts_data |> ggplot(aes(x = week, y = pass_rate)) +
 cowplot::plot_grid(p1, p2, labels = c("A", "B"), ncol=1, nrow=2)
 
 p <- cowplot::plot_grid(p1, p2, labels = c("A", "B"), ncol=1, nrow=2)
-ggsave("Fig_1.tiff", p, device = "tiff", dpi = 600)
+ggsave("Fig_1.tiff", p, device = "tiff", dpi = 600, width = 6, height = 8)
+
+remove(p1, p2)
 
 # Plot number of infractions and inspections together
 
-ts_data |> pivot_longer(cols = c("infractions", "inspections"), 
+p <- ts_data |> pivot_longer(cols = c("infractions", "inspections"), 
                                     names_to = "Outcome", values_to = "count") |> 
   mutate(Outcome = recode(Outcome, "infractions" = "Infractions", 
                           "inspections" = "Inspections")) |>
@@ -207,6 +210,7 @@ ts_data |> pivot_longer(cols = c("infractions", "inspections"),
   annotate(geom = "text", label = "Pandemic", x = as.Date("2020-03-17"), 
            y = 600, angle = 90, vjust = 1, size = 4)
 
+ggsave("Fig_2.tiff", p, device = "tiff", dpi = 600, width = 8, height = 4)
 
 # Plot critical/significant infractions rates and overall pass rate 
 
@@ -260,7 +264,7 @@ p <- ts_data |> pivot_longer(cols = c("infractions", "inspections"),
   geom_segment(aes(xend=max(week), yend = count), linetype=2, colour="grey") +
   geom_point(size = 3) + 
   geom_text(aes(x = max(week)+ .1, label = Outcome, hjust=0)) +
-  scale_x_yearweek(date_breaks = "8 weeks") +
+  scale_x_yearweek(date_breaks = "12 weeks") +
   transition_reveal(week2) + 
   view_follow(fixed_y = TRUE) +
   coord_cartesian(clip = 'off') + 
