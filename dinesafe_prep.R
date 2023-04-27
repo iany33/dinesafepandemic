@@ -184,7 +184,7 @@ p2 <- ts_data |> ggplot(aes(x = week, y = pass_rate)) +
   theme(axis.text.x = element_text(angle = 45, hjust=1)) + 
   geom_vline(xintercept = as.Date("2020-03-17"), linetype = "dashed") + 
   annotate(geom = "text", label = "Pandemic", x = as.Date("2020-03-17"), 
-           y = 0.95, angle = 90, vjust = 1, size = 3)
+           y = 0.95, angle = 90, vjust = 1, size = 4)
 
 cowplot::plot_grid(p1, p2, labels = c("A", "B"), ncol=1, nrow=2)
 

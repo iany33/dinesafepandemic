@@ -47,7 +47,6 @@ m1.1 <- brm(pass | trials(inspections) ~ 0 + Intercept + time*pandemic + month,
 
 plot(m1.1)
 pp_check(m1.1, type = "stat", stat = "mean", prefix = "ppd")
-pp_check(m1.1)
 pp_check(m1.1, ndraws=100, prefix = "ppd")
 pp_check(m1.1, type = "loo_pit")
 
@@ -163,7 +162,7 @@ mfx <- marginaleffects(m3, type = "response", variables = "pandemic",
 p2 <- ggplot(mfx, aes(x = draw)) +
   stat_halfeye(slab_alpha = .5, fill = "#440154")  +
   labs(x = "Effect of Pandemic on Pass Rate", y = "",
-       subtitle = "Marginal Effect of Pandemic") +
+       subtitle = "Contrast") +
   theme_minimal() 
 
 p <- cowplot::plot_grid(p1, p2, labels = c("A", "B"), nrow=1, ncol=2)
@@ -257,21 +256,21 @@ remove(pred, p)
 get_prior(infractions | rate(inspections) ~ 0 + Intercept + time*pandemic + month,
           data = ts_model, family = negbinomial)
 
-prior <- set_prior("normal(0,1)", class = "b")
+prior2 <- c(set_prior("normal(0,1)", class = "b"),
+            set_prior("student_t(3, 0, 2.5)", class = "shape"))
 
 r1.1 <- brm(infractions | rate(inspections) ~ 0 + Intercept + time*pandemic + month,
-          data = ts_model, prior = prior, family = negbinomial,
+          data = ts_model, prior = prior2, family = negbinomial,
           iter = 4000, chains = 4, cores = 4, warmup = 1000, seed = 9, sample_prior = TRUE, backend = "cmdstanr", 
           stan_model_args = list(stanc_options = list("O1")))
 
 plot(r1.1)
 pp_check(r1.1, type = "stat", stat = "mean", prefix = "ppd")
-pp_check(r1.1)
 pp_check(r1.1, ndraws=100, prefix = "ppd")
 pp_check(r1.1, type = "loo_pit")
 
 r1 <- brm(infractions | rate(inspections) ~ 0 + Intercept + time*pandemic + month,
-          data = ts_model, prior = prior, family = negbinomial,
+          data = ts_model, prior = prior2, family = negbinomial,
           iter = 4000, chains = 4, cores = 4, warmup = 1000, seed = 9, backend = "cmdstanr", 
           stan_model_args = list(stanc_options = list("O1")))
 
@@ -302,7 +301,7 @@ loo(r1, r1.2)
 # Compare to model with auto-regressive term
 
 r2 <- brm(infractions  | rate(inspections) ~ 0 + Intercept + time*pandemic + month + ar(p = 1),
-          data = ts_model, prior = prior, family = negbinomial,
+          data = ts_model, prior = prior2, family = negbinomial,
           iter = 4000, chains = 4, cores = 4, warmup = 1000, seed = 9, backend = "cmdstanr", 
           stan_model_args = list(stanc_options = list("O1")))
 
@@ -319,7 +318,7 @@ loo(r1, r2)
 # Compare with multi-level/varying effect approach for month
 
 r3 <- brm(infractions  | rate(inspections) ~ 0 + Intercept + time*pandemic + (1 | month),
-          data = ts_model, prior = prior, family = negbinomial,
+          data = ts_model, prior = prior2, family = negbinomial,
           iter = 4000, chains = 4, cores = 4, warmup = 1000, seed = 9, backend = "cmdstanr", 
           stan_model_args = list(stanc_options = list("O1")))
 
@@ -336,7 +335,7 @@ loo(r1, r3)
 # Compare to multi-level model with auto-regressive term
 
 r4 <- brm(infractions  | rate(inspections) ~ 0 + Intercept + time*pandemic + (1 | month) + ar(p = 1),
-          data = ts_model, prior = prior, family = negbinomial,
+          data = ts_model, prior = prior2, family = negbinomial,
           iter = 4000, chains = 4, cores = 4, warmup = 1000, seed = 9, backend = "cmdstanr", 
           stan_model_args = list(stanc_options = list("O1")))
 
@@ -387,7 +386,7 @@ mfx <- marginaleffects(r3, type = "response", variables = "pandemic",
 p2 <- ggplot(mfx, aes(x = draw)) +
   stat_halfeye(slab_alpha = .5, fill = "#440154")  +
   labs(x = "Effect of Pandemic on Infraction Rate", y = "",
-       subtitle = "Marginal Effect of Pandemic") +
+       subtitle = "Contrast") +
   theme_minimal() 
 
 p <- cowplot::plot_grid(p1, p2, labels = c("A", "B"), nrow=1, ncol=2)
@@ -459,7 +458,6 @@ ggsave("Fig_5.tiff", p, device = "tiff", dpi = 600,
 
 remove(pred, p)
 
-
 ## Sensitivity analysis of different prior values
 
 prior_s1 <- set_prior("normal(0,2)", class = "b")
@@ -475,11 +473,15 @@ print(m3.1, digits = 5)
 print(m3.2, digits = 5)
 print(m3, digits = 5)
 
+prior2_s1 <- c(set_prior("normal(0,2)", class = "b"),
+            set_prior("student_t(3, 0, 2.5)", class = "shape"))
+prior2_s2 <- c(set_prior("normal(0,0.5)", class = "b"),
+            set_prior("student_t(3, 0, 2.5)", class = "shape"))
 
-r3.1 <- update(r3, prior = prior_s1, backend = "cmdstanr", cores = 4,
+r3.1 <- update(r3, prior = prior2_s1, backend = "cmdstanr", cores = 4,
                stan_model_args = list(stanc_options = list("O1")))
 
-r3.2 <- update(r3, prior = prior_s2, backend = "cmdstanr", cores = 4,
+r3.2 <- update(r3, prior = prior2_s2, backend = "cmdstanr", cores = 4,
                stan_model_args = list(stanc_options = list("O1")))
 
 print(r3.1, digits = 5)
