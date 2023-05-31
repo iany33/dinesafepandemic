@@ -131,17 +131,17 @@ m3 |> gather_draws(r_month[month,]) |>  mean_qi()
 
 # First examine effect of pandemic
 
-predictions(m3, type = "response", 
+predictions(m3, type = "response", re_formula = NULL,
             newdata = datagrid(model = m3, pandemic = c("Pre-Pandemic", "Pandemic Period"),
                                time = seq(1, 297, by = 2), month = unique,
                                inspections = 1), by = "pandemic")
 
-pred1 <- predictions(m3, type = "response", 
+pred1 <- predictions(m3, type = "response", re_formula = NULL,
                      newdata = datagrid(model = m3, pandemic = "Pre-Pandemic", 
                                         time = seq(1, 168, by = 2), month = unique, inspections = 1)) |> posteriordraws()
 head(pred1)
 
-pred2 <- predictions(m3, type = "response", 
+pred2 <- predictions(m3, type = "response", re_formula = NULL,
                      newdata = datagrid(model = m3, pandemic = "Pandemic Period", 
                                         time = seq(169, 297, by = 2), month = unique, inspections = 1)) |> posteriordraws()
 
@@ -155,7 +155,7 @@ p1 <- ggplot(pred, aes(x = draw, fill = pandemic)) +
   theme_minimal() +
   theme(legend.position = "bottom")   
 
-mfx <- marginaleffects(m3, type = "response", variables = "pandemic", 
+mfx <- comparisons(m3, type = "response", re_formula = NULL, variables = "pandemic", 
                        newdata = datagrid(time = seq(169, 297, by = 2),  
                                           month = unique, inspections = 1)) |> posteriordraws()
 
@@ -174,7 +174,7 @@ remove(p1, p2)
 
 # Alternative plots comparing effect of different pandemic time periods
 
-mfx2 <- marginaleffects(m3, type = "response", variables = "pandemic", 
+mfx2 <- comparisons(m3, type = "response", re_formula = NULL, variables = "pandemic", 
                        newdata = datagrid(time = c(mean(169:261), mean(262:297)), 
                                           month = unique, inspections = 1)) |> posteriordraws()
 
@@ -189,16 +189,16 @@ remove(mfx2)
 # Summarize marginal effects/contrast of pandemic of whole pandemic time period
 # Then contrast over first 2 years and period when inspections increased to 200+ in week 17 (Apr. 25, 2022)
 
-marginaleffects(m3, type = "response", variables = "pandemic", 
+comparisons(m3, type = "response", variables = "pandemic", 
                 newdata = datagrid(time = seq(1, 297, by = 2), month = unique, inspections = 1)) |> summary()
 
-marginaleffects(m3, type = "response", variables = "pandemic", 
+comparisons(m3, type = "response", variables = "pandemic", 
                 newdata = datagrid(time = seq(169, 297, by = 2), month = unique, inspections = 1)) |> summary()
 
-marginaleffects(m3, type = "response", variables = "pandemic", 
+comparisons(m3, type = "response", variables = "pandemic", 
                 newdata = datagrid(time = seq(169, 261, by = 2), month = unique, inspections = 1)) |> summary()
 
-marginaleffects(m3, type = "response", variables = "pandemic", 
+comparisons(m3, type = "response", variables = "pandemic", 
                 newdata = datagrid(time = seq(262, 297, by = 2), month = unique, inspections = 1)) |> summary()
 
 
@@ -360,12 +360,12 @@ predictions(r3, type = "response", re_formula = NULL,
                     newdata = datagrid(pandemic = c("Pre-Pandemic", "Pandemic Period"),
                                        time = seq(1, 297, by = 2), month = unique, inspections = 1), by = "pandemic") 
 
-pred1 <- predictions(r3, type = "response",
+pred1 <- predictions(r3, type = "response", re_formula = NULL,
                      newdata = datagrid(model = r3, pandemic = "Pre-Pandemic", 
                                         time = seq(1, 168, by = 2), month = unique, inspections = 1)) |> posteriordraws()
 head(pred1)
 
-pred2 <- predictions(r3, type = "response",
+pred2 <- predictions(r3, type = "response", re_formula = NULL,
                      newdata = datagrid(model = r3, pandemic = "Pandemic Period", 
                                         time = seq(169, 297, by = 2), month = unique, inspections = 1)) |> posteriordraws()
 
@@ -379,7 +379,7 @@ p1 <- ggplot(pred, aes(x = draw, fill = pandemic)) +
   theme_minimal() +
   theme(legend.position = "bottom")   
 
-mfx <- marginaleffects(r3, type = "response", variables = "pandemic", 
+mfx <- comparisons(r3, type = "response", re_formula = NULL, variables = "pandemic", 
                        newdata = datagrid(time = seq(169, 297, by = 2), month = unique, inspections = 1)) |> 
   posteriordraws()
 
@@ -399,14 +399,14 @@ remove(p1, p2)
 # Summarize marginal effects/contrast of pandemic of whole pandemic time period
 # Then contrast over first 2 years and period when inspections increased to 200+ in week 17 (Apr. 25, 2022)
 
-marginaleffects(r3, type = "response", variables = "pandemic",
+comparisons(r3, type = "response", re_formula = NULL, variables = "pandemic",
                         newdata = datagrid(time = seq(169, 297, by = 2), 
                                            month = unique, inspections = 1)) |> summary()
 
-marginaleffects(r3, type = "response", variables = "pandemic", 
+comparisons(r3, type = "response", re_formula = NULL, variables = "pandemic", 
                 newdata = datagrid(time = seq(169, 261, by = 2), month = unique, inspections = 1)) |> summary()
 
-marginaleffects(r3, type = "response", variables = "pandemic", 
+comparisons(r3, type = "response", re_formula = NULL, variables = "pandemic", 
                 newdata = datagrid(time = seq(262, 297, by = 2), month = unique, inspections = 1)) |> summary()
 
 
@@ -429,13 +429,13 @@ ggsave("Fig_4.tiff", p, device = "tiff", dpi = 600,
 
 pred1 <- predictions(r3, type = "response", re_formula = NULL,
                      newdata = datagrid(model = r3, pandemic = "Pre-Pandemic", 
-                                        month = ts_model$month,
+                                        month = unique,
                                         time = seq(1, 168, by = 2), inspections = 1)) |> posteriordraws()
 head(pred1)
 
 pred2 <- predictions(r3, type = "response", re_formula = NULL,
                      newdata = datagrid(model = r3, pandemic = "Pandemic Period", 
-                                        month = ts_model$month,
+                                        month = unique,
                                         time = seq(169, 297, by = 2), inspections = 1)) |> posteriordraws()
 
 pred <- rbind(pred1, pred2)
